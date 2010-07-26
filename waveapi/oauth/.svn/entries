@@ -1,0 +1,53 @@
+8
+
+dir
+26
+http://wave-robot-python-client.googlecode.com/svn/trunk/src/waveapi/oauth
+http://wave-robot-python-client.googlecode.com/svn
+
+
+
+2010-03-01T23:26:56.963940Z
+18
+pamela.fox
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+2100b2f4-4a30-11de-9ab4-498524d4d007
+
+LICENSE
+file
+
+
+
+
+2010-04-03T21:45:49.000000Z
+e71357d3baead6bdbd37f82e3eb5177c
+2010-03-01T23:26:56.963940Z
+18
+pamela.fox
+
+__init__.py
+file
+
+
+
+
+2010-04-03T21:45:49.000000Z
+773ee17c196ebb6fdf62ccb6e6e19831
+2010-03-01T23:26:56.963940Z
+18
+pamela.fox
+has-props
+
