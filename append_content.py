@@ -6,6 +6,9 @@ import htmlentitydefs
 IMAGE_PLACEHOLDER = '***{{((IMAGE_ELEMENT))}}***'
 
 def append_content_to_blip(blip, content, type=None):
+    if not content:
+        return
+    
     if type == 'text/plain':
         # Replace characters that Wave breaks on
         text = content.replace('\t', ' ').replace('\r', '\n')
@@ -26,7 +29,11 @@ def append_content_to_blip(blip, content, type=None):
                 text = text.replace('>', '&gt;')
                 tag.replaceWith(text)
             else:
-                if tag.name == 'img':
+                if tag.name == 'a':
+                    href = tag.get('href')
+                    if href:
+                       tag['href'] = href.replace('&amp;', '&')
+                elif tag.name == 'img':
                     imgs.append({'url': tag.get('src'),
                                 'width': tag.get('width'),
                                 'height': tag.get('height')})
@@ -54,8 +61,8 @@ def append_content_to_blip(blip, content, type=None):
         # Image elements don't allow links on them.
         # So insert an extra space after images so that a link can still
         # be clicked if it would normally be on the image.
-        placeholder.insert_after(' ')
         placeholder.replace(image)
+        placeholder.insert_after(' ') 
 
 
 def unescape(text):
