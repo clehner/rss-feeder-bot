@@ -1,6 +1,7 @@
 import logging
 from django.utils import simplejson
 import feedparser
+# http://www.feedparser.org/docs/reference.html
 import re
 
 from google.appengine.ext import db
@@ -8,10 +9,7 @@ from google.appengine.ext import webapp
 from google.appengine.api import urlfetch
 from google.appengine.api.labs import taskqueue
 
-from waveapi import appengine_robot_runner
-from waveapi import element
-from waveapi import events
-from waveapi import robot
+from waveapi import appengine_robot_runner, element, events, robot
 
 import credentials
 import models
@@ -108,12 +106,15 @@ def subscribe_wave_to_feed_url(wavelet, feed_url, at_root=False):
     if feed:
         # We already have this feed in the db.
         # Add its existing entries to the wave.
-        try:
-            feed_contents = urlfetch.fetch(feed_url).content
-            d = feedparser.parse(feed_contents)
+        d = fetch_parse_feed(feed_url)
+        # append_entries_to_wave(wavelet, feed.entries)
+        if d:
             append_entries_to_wave(wavelet, d['entries'])
-        except:
-            pass
+        else:
+            if subscription.is_saved():
+                subscription.delete()
+            wavelet.reply('Sorry, I was not able to process the feed "%s"!' % feed_url)
+            return
     else:
         # It is a new feed.
         feed = models.Feed()
@@ -128,7 +129,22 @@ def subscribe_wave_to_feed_url(wavelet, feed_url, at_root=False):
         wavelet.title = feed.title
     
     if update_now:
-        update_feed(feed)
+        success = update_feed(feed)
+        if not success:
+            if subscription.is_saved():
+                subscription.delete()
+            subscription.delete()
+            feed.delete()
+            wavelet.reply('Sorry, I was not able to process the feed "%s"!' % feed_url)
+            return
+            
+
+def fetch_parse_feed(feed_url):
+    try:
+        feed_contents = urlfetch.fetch(feed_url).content
+        return feedparser.parse(feed_contents)
+    except:
+        return None
 
 def queue_update_feed(feed_url):
     taskqueue.add(url='/update_feed', params={'feed_url': feed_url})
@@ -151,13 +167,13 @@ class FeedsUpdaterCron(webapp.RequestHandler):
             queue_update_feed(feed.url)
 
 def update_feed(feed):
-    logging.info('updating a feed')
+    logging.info('updating feed %s' % feed.url)
 
-    try:
-        feed_contents = urlfetch.fetch(feed.url).content
-        d = feedparser.parse(feed_contents)
-    except:
-        return
+    d = fetch_parse_feed(feed.url)
+    if d is None:
+        logging.info('unable to update feed %s' % feed.url)
+        return False
+    
     feed.title = d.feed.get('title')
     feed.put()
     new_entries = []
@@ -177,6 +193,7 @@ def update_feed(feed):
     logging.info('new entries: %s' % new_entries)
     if new_entries:
         append_entries_to_waves_with_feed(new_entries, feed)
+    return True
 
 def append_entries_to_waves_with_feed(entries, feed):
     '''
