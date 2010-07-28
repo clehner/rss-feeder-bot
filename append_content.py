@@ -5,6 +5,18 @@ import htmlentitydefs
 
 IMAGE_PLACEHOLDER = '***{{((IMAGE_ELEMENT))}}***'
 
+whitespace_re = re.compile('\s+')
+
+fix_styles = {
+    'background-color': 'backgroundColor',
+    'font-family': 'fontFamily',
+    'font-size': 'fontSize',
+    'font-style': 'fontStyle',
+    'font-weight': 'fontWeight',
+    'text-decoration': 'textDecoration',
+    'vertical-align': 'verticalAlign',
+}.iteritems()
+
 def append_content_to_blip(blip, content, type=None):
     if not content:
         return
@@ -27,18 +39,24 @@ def append_content_to_blip(blip, content, type=None):
                 text = text.replace('&', '&amp;')
                 text = text.replace('<', '&lt;')
                 text = text.replace('>', '&gt;')
+                # strip whitespace
+                text = whitespace_re.sub(' ', text)
                 tag.replaceWith(text)
             else:
-                if tag.name == 'a':
-                    href = tag.get('href')
-                    if href:
-                       tag['href'] = href.replace('&amp;', '&')
-                elif tag.name == 'img':
+                if tag.name == 'img':
                     imgs.append({'url': tag.get('src'),
                                 'width': tag.get('width'),
                                 'height': tag.get('height')})
                     # replace it with an image element later
                     tag.replaceWith(IMAGE_PLACEHOLDER)
+                else:
+                    if tag.name == 'a':
+                        href = tag.get('href')
+                        if href:
+                            tag['href'] = href.replace('&amp;', '&')
+                    style = tag.get('style')
+                    if style: 
+                        tag['style'] = replace_all(style, fix_styles)
                 cleanup(tag)
     
     soup = BeautifulSoup(content.strip())
@@ -91,3 +109,8 @@ def unescape(text):
                 pass
         return text # leave as is
     return re.sub("&#?\w+;", fixup, text)
+
+def replace_all(text, replacements):
+    for find, replace in replacements:
+        text = text.replace(find, replace)
+    return text
