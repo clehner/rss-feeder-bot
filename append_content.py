@@ -49,14 +49,13 @@ def append_content_to_blip(blip, content, type=None):
                                 'height': tag.get('height')})
                     # replace it with an image element later
                     tag.replaceWith(IMAGE_PLACEHOLDER)
-                else:
-                    if tag.name == 'a':
-                        href = tag.get('href')
-                        if href:
-                            tag['href'] = href.replace('&amp;', '&')
-                    style = tag.get('style')
-                    if style: 
-                        tag['style'] = replace_all(style, fix_styles)
+                elif tag.name == 'a':
+                    href = tag.get('href')
+                    if href:
+                        tag['href'] = href.replace('&amp;', '&')
+                style = tag.get('style')
+                if style:
+                    tag['style'] = replace_all(style, fix_styles)
                 cleanup(tag)
     
     soup = BeautifulSoup(content.strip())
@@ -80,7 +79,7 @@ def append_content_to_blip(blip, content, type=None):
         # So insert an extra space after images so that a link can still
         # be clicked if it would normally be on the image.
         placeholder.replace(image)
-        placeholder.insert_after(' ') 
+        placeholder.insert_after(' ')
 
 
 def unescape(text):
@@ -111,6 +110,6 @@ def unescape(text):
     return re.sub("&#?\w+;", fixup, text)
 
 def replace_all(text, replacements):
-    for find, replace in replacements:
+    for find, replace in replacements.items():
         text = text.replace(find, replace)
     return text
