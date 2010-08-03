@@ -15,7 +15,7 @@ fix_styles = {
     'font-weight': 'fontWeight',
     'text-decoration': 'textDecoration',
     'vertical-align': 'verticalAlign',
-}.iteritems()
+}
 
 def append_content_to_blip(blip, content, type=None):
     if not content:
