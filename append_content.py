@@ -47,8 +47,9 @@ def append_content_to_blip(blip, content, type=None):
                     imgs.append({'url': tag.get('src'),
                                 'width': tag.get('width'),
                                 'height': tag.get('height')})
-                    # replace it with an image element later
-                    tag.replaceWith(IMAGE_PLACEHOLDER)
+                    # replace it with an image element later.
+                    # add padding.
+                    tag.replaceWith(' ' + IMAGE_PLACEHOLDER)
                 elif tag.name == 'a':
                     href = tag.get('href')
                     if href:
